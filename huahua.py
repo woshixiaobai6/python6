@@ -51,7 +51,7 @@ t.end_fill()
 
 # 更新画布
 screen.update()
-print()
+
 
 # 结束绘制
 turtle.done()

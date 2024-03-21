@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Capture</title>
+</head>
+<body>
+    <h2>Take a Photo and Submit</h2>
+    <video id="video" width="400" height="300" autoplay></video>
+    <button onclick="takeSnapshot()">Take Snapshot</button>
+
+    <canvas id="canvas" style="display: none;"></canvas>
+    
+    <script>
+        async function takeSnapshot() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            // 获取摄像头视频流
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+
+            // 等待摄像头加载完成
+            video.onloadedmetadata = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // 转换为 base64 格式
+                const imageData = canvas.toDataURL('image/png');
+
+                // 发送图像数据到后端
+                sendImageData(imageData);
+                
+                // 停止摄像头视频流
+                stream.getTracks().forEach(track => track.stop());
+            };
+        }
+
+        async function sendImageData(imageData) {
+    try {
+        const response = await fetch('http://192.168.161.97:5000/submit-photo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ "imageData": imageData })  // 修改此处字段名为 "imageData"
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const responseData = await response.json();
+        console.log('Response from server:', responseData);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+       
+    </script>
+</body>
+</html>
+

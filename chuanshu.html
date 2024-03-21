@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Frontend</title>
+</head>
+<body>
+    <h2>Submit Data</h2>
+    <input type="text" id="dataInput">
+    <button onclick="submitData()">Submit</button>
+
+    <script>
+        async function submitData() {
+            const inputData = document.getElementById('dataInput').value;
+            const data = { "data": inputData }; // 构建一个包含数据的对象
+    
+            try {
+                const response = await fetch('http://localhost:5000/submit-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const responseData = await response.json();
+                console.log('Response from server:', responseData);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+    </script>
+    
+</body>
+</html>

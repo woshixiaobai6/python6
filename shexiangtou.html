@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Recording and Email Sending</title>
+</head>
+<body>
+    <h1>Video Recording and Email Sending</h1>
+
+    <video id="videoElement" width="640" height="480" autoplay></video><br>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <button onclick="sendEmail()">Send Email</button>
+
+    <script>
+        let stream;
+        let recordedChunks = [];
+
+        async function startRecording() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = function(e) {
+                    if (e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+                mediaRecorder.start();
+            } catch (error) {
+                console.error('Error accessing the camera:', error);
+            }
+        }
+
+        function stopRecording() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        async function sendEmail() {
+            const apiKey = 'kzvygetazsaqijfj';
+            //YUNDLZCZCAQQOJWN网易授权码
+            const fromEmail = '1543807401@qq.com';
+            const toEmail = '1543807401@qq.com';
+
+            const formData = new FormData();
+            formData.append('file', new Blob(recordedChunks), 'recorded_video.webm');
+
+            const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    personalizations: [{ to: [{ email: toEmail }] }],
+                    from: { email: fromEmail },
+                    subject: 'Recorded Video',
+                    content: [{ type: 'text/plain', value: 'Please find the recorded video attached.' }],
+                    attachments: [{
+                        content: formData.get('file'),
+                        type: 'video/webm',
+                        filename: 'recorded_video.webm',
+                        disposition: 'attachment'
+                    }]
+                })
+            });
+
+            if (response.ok) {
+                alert('Email sent successfully');
+            } else {
+                alert('Failed to send email');
+            }
+        }
+    </script>
+</body>
+</html>
